@@ -1,67 +1,100 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_proyect/register_screen.dart';
 import 'home_screen.dart';
+import 'register_screen.dart'; // 👈 Importamos la pantalla de registro
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _userController = TextEditingController();
-  final _pinController = TextEditingController();
-  final String _correctUser = 'usuario';
-  final String _correctPin = '1234';
+  final TextEditingController _userController = TextEditingController();
+  final TextEditingController _passController = TextEditingController();
 
-  void _login() {
-    if (_userController.text == _correctUser &&
-        _pinController.text == _correctPin) {
-      Navigator.pushReplacement(
-        context,
-        PageRouteBuilder(
-          transitionDuration: Duration(milliseconds: 500),
-          pageBuilder: (_, __, ___) => HomeScreen(),
-          transitionsBuilder:
-              (_, animation, __, child) =>
-                  FadeTransition(opacity: animation, child: child),
-        ),
+  void _login() async {
+    String user = _userController.text.trim();
+    String pass = _passController.text;
+
+    if (user.isEmpty || pass.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Por favor completa todos los campos')),
       );
-    } else {
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(
+          'http://10.0.2.2:5000/api/users/login',
+        ), // Ajusta si usas dispositivo físico
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'correo': user, 'password': pass}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final nombre = data['nombre'];
+        final saldo = data['saldo'];
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => HomeScreen(
+                  nombre: data['nombre'],
+                  saldo:
+                      (data['saldo'] as num)
+                          .toDouble(), // 👈 esta línea soluciona el error
+                ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Credenciales incorrectas')));
+      }
+    } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Usuario o PIN incorrecto')));
+      ).showSnackBar(SnackBar(content: Text('Error de conexión al servidor')));
     }
+  }
+
+  void _goToRegister() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RegisterScreen(),
+      ), // ✅ Sin argumentos
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: Text('Iniciar sesión'),
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+      ),
       body: Center(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.account_balance_wallet_rounded,
-                size: 80,
-                color: Colors.indigo,
-              ),
+              Icon(Icons.lock, size: 80, color: Colors.indigo),
               SizedBox(height: 20),
-              Text(
-                'Bienvenido al Cajero',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.indigo[800],
-                ),
-              ),
-              SizedBox(height: 30),
               TextField(
                 controller: _userController,
                 decoration: InputDecoration(
                   labelText: 'Usuario',
-                  prefixIcon: Icon(Icons.person),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -69,33 +102,39 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               SizedBox(height: 16),
               TextField(
-                controller: _pinController,
+                controller: _passController,
+                obscureText: true,
                 decoration: InputDecoration(
-                  labelText: 'PIN',
-                  prefixIcon: Icon(Icons.lock),
+                  labelText: 'Contraseña',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                obscureText: true,
-                keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 24),
+              SizedBox(height: 30),
               ElevatedButton(
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.indigo,
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 14, horizontal: 40),
+                  padding: EdgeInsets.symmetric(vertical: 14, horizontal: 24),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  textStyle: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
                 ),
                 child: Text('Ingresar'),
+              ),
+              SizedBox(height: 12),
+              TextButton.icon(
+                onPressed: _goToRegister,
+                icon: Icon(Icons.person_add, color: Colors.indigo),
+                label: Text(
+                  'Crear cuenta',
+                  style: TextStyle(
+                    color: Colors.indigo,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
           ),

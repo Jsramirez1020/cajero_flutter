@@ -6,6 +6,8 @@ void main() {
 }
 
 class BasicATMApp extends StatelessWidget {
+  const BasicATMApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

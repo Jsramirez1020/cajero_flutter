@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class WithdrawScreen extends StatefulWidget {
   final double balance;
 
-  const WithdrawScreen({required this.balance});
+  const WithdrawScreen({super.key, required this.balance});
 
   @override
   _WithdrawScreenState createState() => _WithdrawScreenState();
