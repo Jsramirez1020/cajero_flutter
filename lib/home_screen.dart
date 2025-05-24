@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'withdraw_screen.dart';
+import 'UpdateProfileScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String nombre;
@@ -39,17 +40,24 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _goToWithdraw() async {
-    final result = await Navigator.push<double>(
+  void _goToUpdateProfile() {
+    final userData = {
+      'id': 1, // reemplaza con el ID real si lo tienes
+      'nombre': widget.nombre,
+      'correo':
+          'usuario@correo.com', // puedes usar valores reales si los tienes
+      'identificacion': '123456789',
+      'usuario': 'usuario123',
+      'edad': 30,
+      'password': '123456', // si está disponible
+    };
+
+    Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => WithdrawScreen(balance: _balance),
+        builder: (context) => UpdateProfileScreen(userData: userData),
       ),
     );
-
-    if (result != null) {
-      _withdraw(result);
-    }
   }
 
   @override
@@ -60,6 +68,13 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text('Cajero Automático'),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            tooltip: 'Actualizar perfil',
+            onPressed: _goToUpdateProfile,
+          ),
+        ],
       ),
       body: Center(
         child: Padding(
@@ -96,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(height: 40),
               ElevatedButton.icon(
-                onPressed: _goToWithdraw,
+                onPressed: _goToUpdateProfile,
                 icon: Icon(Icons.money),
                 label: Text('Retirar dinero'),
                 style: ElevatedButton.styleFrom(
@@ -127,3 +142,30 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+/*
+class UpdateProfileScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Cajero Automático'),
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            tooltip: 'Actualizar perfil',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UpdateProfileScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Center(child: Text('Pantalla de actualización de perfil')),
+    );
+  }
+}*/
