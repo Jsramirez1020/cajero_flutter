@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_proyect/register_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
-import 'register_screen.dart'; // 👈 Importamos la pantalla de registro
+// 👈 Importamos la pantalla de registro
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -29,28 +30,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse(
-          'http://10.0.2.2:5000/api/users/login',
-        ), // Ajusta si usas dispositivo físico
+        Uri.parse('http://10.0.2.2:5000/api/users/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'correo': user, 'password': pass}),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        final userId = data['id']; // 👈 obtenemos el ID
         final nombre = data['nombre'];
-        final saldo = data['saldo'];
+        final saldo = (data['saldo'] as num).toDouble();
+
+        // ✅ Guardar el ID en SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('userId', userId);
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder:
-                (context) => HomeScreen(
-                  nombre: data['nombre'],
-                  saldo:
-                      (data['saldo'] as num)
-                          .toDouble(), // 👈 esta línea soluciona el error
-                ),
+            builder: (context) => HomeScreen(nombre: nombre, saldo: saldo),
           ),
         );
       } else {
